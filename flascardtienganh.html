@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flashcards - Từ vựng Công việc</title>
+    <!-- Tải Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        /* Lớp CSS cho hiệu ứng lật thẻ 3D */
+        .flashcard-container {
+            perspective: 1000px;
+        }
+        .flashcard {
+            width: 100%;
+            height: 250px;
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform 0.6s;
+        }
+        .flashcard.flipped {
+            transform: rotateY(180deg);
+        }
+        .flashcard-front,
+        .flashcard-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden; /* Safari */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+            border-radius: 0.75rem; /* rounded-xl */
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); /* shadow-lg */
+        }
+        .flashcard-front {
+            background-color: #2563EB; /* bg-blue-600 */
+            color: white;
+        }
+        .flashcard-back {
+            background-color: #16A34A; /* bg-green-600 */
+            color: white;
+            transform: rotateY(180deg);
+        }
+    </style>
+</head>
+<body class="bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-white flex items-center justify-center min-h-screen p-4">
+
+    <div class="bg-white dark:bg-gray-800 shadow-2xl rounded-2xl p-6 sm:p-8 w-full max-w-lg">
+        <h1 class="text-2xl sm:text-3xl font-bold text-center text-blue-600 dark:text-blue-400 mb-6">Flashcards: Từ vựng Công việc</h1>
+        
+        <!-- Khu vực thẻ flashcard -->
+        <div class="flashcard-container mb-6">
+            <div id="flashcard" class="flashcard cursor-pointer">
+                <div id="flashcard-front" class="flashcard-front text-3xl sm:text-4xl font-semibold text-center">
+                    <!-- Nội dung từ vựng sẽ ở đây -->
+                </div>
+                <div id="flashcard-back" class="flashcard-back text-2xl sm:text-3xl font-medium text-center">
+                    <!-- Nội dung nghĩa sẽ ở đây -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Thông tin tiến độ -->
+        <div id="progress" class="text-center text-lg font-medium text-gray-600 dark:text-gray-300 mb-6">
+            Thẻ 1 / 23
+        </div>
+
+        <!-- Nút điều khiển -->
+        <div class="flex justify-between items-center mb-6">
+            <button id="prev-btn" class="bg-gray-300 dark:bg-gray-600 hover:bg-gray-400 dark:hover:bg-gray-500 text-gray-800 dark:text-white font-bold py-2 px-6 rounded-lg transition duration-200 disabled:opacity-50 disabled:cursor-not-allowed">
+                Trước
+            </button>
+            <button id="next-btn" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-lg transition duration-200 disabled:opacity-50 disabled:cursor-not-allowed">
+                Tiếp
+            </button>
+        </div>
+
+        <!-- Nút xáo trộn -->
+        <button id="shuffle-btn" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-6 rounded-lg transition duration-200 text-lg">
+            Xáo trộn & Bắt đầu lại
+        </button>
+    </div>
+
+    <script>
+        // Dữ liệu từ vựng trích xuất từ hình ảnh
+        const cardsData = [
+            { front: "shift", back: "ca làm việc" },
+            { front: "tiring", back: "gây mệt mỏi" },
+            { front: "stressful", back: "căng thẳng" },
+            { front: "nine-to-five", back: "giờ hành chính" },
+            { front: "accountant", back: "kế toán viên" },
+            { front: "overtime", back: "ngoài giờ làm việc" },
+            { front: "challenging", back: "đầy thách thức" },
+            { front: "relevant", back: "có liên quan" },
+            { front: "bonus", back: "tiền thưởng" },
+            { front: "employ", back: "tuyển dụng" },
+            { front: "rewarding", back: "đáng, xứng đáng" },
+            { front: "qualification", back: "bằng cấp, trình độ" },
+            { front: "well-paid", back: "được trả lương cao" },
+            { front: "vacancy", back: "vị trí công việc còn trống" },
+            { front: "flexible", back: "linh hoạt" },
+            { front: "review", back: "bài đánh giá" },
+            { front: "hard-working", back: "chăm chỉ" },
+            { front: "on-the-job", back: "trong công việc" },
+            { front: "wage", back: "tiền công" },
+            { front: "take responsibility for / be responsible for", back: "chịu trách nhiệm cho" },
+            { front: "supervise", back: "giám sát" },
+            { front: "attendance", back: "chuyên cần" },
+            { front: "enthusiastic", back: "nhiệt tình, hăng hái" },
+            // Bổ sung 23 từ mới từ hình ảnh thứ hai
+            { front: "high-rise", back: "cao tầng" },
+            { front: "urban", back: "thuộc về đô thị" },
+            { front: "urban sprawl", back: "sự bành trướng đô thị" },
+            { front: "urbanisation", back: "đô thị hoá" },
+            { front: "leisure", back: "sự giải trí, sự thư giãn" },
+            { front: "convenience store", back: "cửa hàng tiện lợi" },
+            { front: "convenient", back: "thuận tiện" },
+            { front: "be crowded with", back: "đông đúc" },
+            { front: "rush/peak hour", back: "giờ cao điểm" },
+            { front: "afford", back: "có đủ khả năng chi trả" },
+            { front: "housing", back: "nhà ở" },
+            { front: "expand", back: "mở rộng" },
+            { front: "seek st/ search for", back: "tìm kiếm" },
+            { front: "unemployment", back: "tình trạng thất nghiệp" },
+            { front: "affordable", back: "(giá cả) rẻ, phải chăng" },
+            { front: "infrastructure", back: "cơ sở hạ tầng" },
+            { front: "resident", back: "người dân" },
+            { front: "colonial", back: "thuộc địa, thuộc dân" },
+            { front: "gradually", back: "dần dần" },
+            { front: "modernise", back: "hiện đại hoá" },
+            { front: "concern", back: "mối lo ngại" },
+            { front: "rapidly", back: "rất nhanh, với tốc độ cao" },
+            { front: "reliable", back: "đáng tin cậy" }
+        ];
+
+        let currentCards = [];
+        let currentIndex = 0;
+        let isFlipped = false;
+
+        // Lấy các phần tử DOM
+        const flashcard = document.getElementById('flashcard');
+        const cardFront = document.getElementById('flashcard-front');
+        const cardBack = document.getElementById('flashcard-back');
+        const prevBtn = document.getElementById('prev-btn');
+        const nextBtn = document.getElementById('next-btn');
+        const shuffleBtn = document.getElementById('shuffle-btn');
+        const progressText = document.getElementById('progress'); // Đã thêm khai báo bị thiếu!
+
+        // Hàm xáo trộn mảng (Fisher-Yates shuffle)
+        function shuffle(array) {
+            let m = array.length, t, i;
+            while (m) {
+                i = Math.floor(Math.random() * m--);
+                t = array[m];
+                array[m] = array[i];
+                array[i] = t;
+            }
+            return array;
+        }
+
+        // Hàm tải thẻ
+        function loadCard(index) {
+            if (index < 0 || index >= currentCards.length) return;
+
+            const card = currentCards[index];
+            cardFront.textContent = card.front;
+            cardBack.textContent = card.back;
+            currentIndex = index;
+            isFlipped = false;
+            flashcard.classList.remove('flipped');
+            
+            // Cập nhật tiến độ
+            progressText.textContent = `Thẻ ${currentIndex + 1} / ${currentCards.length}`;
+
+            // Cập nhật trạng thái nút
+            prevBtn.disabled = currentIndex === 0;
+            nextBtn.disabled = currentIndex === currentCards.length - 1;
+        }
+
+        // Hàm bắt đầu trò chơi/xáo trộn
+        function startGame() {
+            currentCards = shuffle([...cardsData]); // Tạo bản sao và xáo trộn
+            loadCard(0);
+        }
+
+        // Gán sự kiện
+        flashcard.addEventListener('click', () => {
+            isFlipped = !isFlipped;
+            flashcard.classList.toggle('flipped');
+        });
+
+        nextBtn.addEventListener('click', () => {
+            if (currentIndex < currentCards.length - 1) {
+                loadCard(currentIndex + 1);
+            }
+        });
+
+        prevBtn.addEventListener('click', () => {
+            if (currentIndex > 0) {
+                loadCard(currentIndex - 1);
+            }
+        });
+
+        shuffleBtn.addEventListener('click', startGame);
+
+        // Bắt đầu lần đầu tiên
+        document.addEventListener('DOMContentLoaded', startGame);
+    </script>
+</body>
+</html>
